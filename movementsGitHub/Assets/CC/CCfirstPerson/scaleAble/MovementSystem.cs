@@ -41,9 +41,20 @@ public class MovementSystem : MonoBehaviour
     private float dirX = 0f;
     private float dirZ = 0f;
 
-    float cameraFall;
 
-    
+    [Header("Sliding")]
+    public float slideForce;
+    public float maxSlideTime;
+    public float maxSlopeAngle;
+    private float slideTimer;
+
+    private float startYscale;
+    private float halfYscale;
+    bool sliding;
+    RaycastHit slopeHit;
+
+
+
 
     Vector3 movementVector;
     [Header("debugging")]
@@ -56,6 +67,9 @@ public class MovementSystem : MonoBehaviour
 
     void SetValues()
     {
+
+        startYscale = transform.localScale.y;
+        halfYscale = transform.localScale.y / 2;
         Cursor.lockState = CursorLockMode.Locked;
         //adding a camera and setting it at the right position
         var cameraObj = new GameObject("players_camera");
@@ -95,7 +109,21 @@ public class MovementSystem : MonoBehaviour
 
     }
 
+    private bool OnSlope()
+    {
+        if (Physics.Raycast(transform.position, Vector3.down, out slopeHit, 5f))
+        {
+            float angle = Vector3.Angle(Vector3.up, slopeHit.normal);
+            return angle < maxSlideTime && angle != 0;
+        }
 
+        return false;
+    }
+
+    public Vector3 GetSlopeMoveDir(Vector3 direction)
+    {
+        return Vector3.ProjectOnPlane(direction, slopeHit.normal).normalized;
+    }
 
     void GetInput()
     {
@@ -134,6 +162,9 @@ public class MovementSystem : MonoBehaviour
     {
         GroundMovement(xSlippery, zSlippery);
         HandleSpeed(x, z, xSlippery, zSlippery);
+        SlideInputMana(x, z);
+        if (sliding)
+            SlidingMovement(x, z);
     }
 
     void GroundMovement(float x, float z)
@@ -206,24 +237,61 @@ public class MovementSystem : MonoBehaviour
 
         
 
-        print(cameraFall);
-        //camera inmpact
-        if (isGrounded && cameraFall > 0)
-        {
-            cameraFall -= velocity.y * camFallBuffer * Time.deltaTime;
-        } else if (!isGrounded)
-        {
-            cameraFall += velocity.y / 10 * Time.deltaTime;
-        }
+        
 
         
     }
 
-    void Vaulting()
+    void SlideInputMana(float x, float z)
     {
+        if (Input.GetKey(KeyCode.LeftShift) && (x != 0 || z != 0))
+            StartSlide();
 
+        if (Input.GetKeyUp(KeyCode.LeftShift) && sliding)
+            StopSlide();
+
+        
+    }
+    
+    private void StartSlide()
+    {
+        sliding = true;
+
+        transform.localScale = new Vector3(transform.localScale.x, halfYscale, transform.localScale.z);
+        controller.Move(Vector3.down * 20);
+
+        slideTimer = maxSlideTime;
     }
 
+    private void SlidingMovement(float x, float z)
+    {
+        Vector3 inputDir = transform.forward * z + transform.right * x;
+
+        if (!OnSlope())
+        {
+            controller.SimpleMove(inputDir.normalized * slideForce);
+            slideTimer -= Time.deltaTime;
+
+        }
+        else
+        {
+            print("onTheSlope");
+            controller.SimpleMove(GetSlopeMoveDir(inputDir) * slideForce);
+
+        }
+
+
+        if (slideTimer <= 0)
+        {
+            StopSlide();
+        }
+    }
+
+    private void StopSlide()
+    {
+        sliding = false;
+        transform.localScale = new Vector3(transform.localScale.x, startYscale, transform.localScale.z);
+    }
 
 
     //Gizmos Ui
