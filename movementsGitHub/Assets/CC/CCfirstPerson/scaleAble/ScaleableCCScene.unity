@@ -211,13 +211,13 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 568934092}
-  m_LocalRotation: {x: 0, y: 0, z: 0.2588191, w: 0.9659258}
-  m_LocalPosition: {x: 22.5, y: 9.4, z: 13.775}
+  m_LocalRotation: {x: -0, y: -0, z: 0.17512937, w: 0.98454547}
+  m_LocalPosition: {x: 22.7, y: 5.29, z: 13.775}
   m_LocalScale: {x: 78.981674, y: 1, z: 19.890852}
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 4
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 30}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 20.172}
 --- !u!1 &690942570
 GameObject:
   m_ObjectHideFlags: 0
@@ -490,12 +490,12 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 1024
   JumpForce: 1.3
+  slideSpeed: 20
   Gravity: -30
   camFallBuffer: 13
   mouseSpeed: 100
-  slideForce: 10
-  maxSlideTime: 100
-  maxSlopeAngle: 100
+  slopeSpeed: 4
+  SlopeLimit: 55
   showKeys: 1
 --- !u!23 &813094574
 MeshRenderer:
@@ -648,10 +648,10 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1749863973}
-  m_LocalRotation: {x: -0, y: -0, z: -0.30642372, w: 0.95189524}
-  m_LocalPosition: {x: -29.9, y: 6.5, z: 13.775}
+  m_LocalRotation: {x: -0, y: -0, z: -0.4734892, w: 0.88079965}
+  m_LocalPosition: {x: -23.83, y: 9.67, z: 13.775}
   m_LocalScale: {x: 33.953087, y: 1, z: 19.890852}
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 3
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: -35.688}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: -56.522}

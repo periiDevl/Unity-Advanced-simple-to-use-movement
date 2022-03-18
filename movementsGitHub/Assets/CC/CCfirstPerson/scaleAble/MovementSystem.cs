@@ -20,6 +20,7 @@ public class MovementSystem : MonoBehaviour
 
    [HideInInspector] public float JumpForce = 3f;
 
+    public float slideSpeed;
     Vector3 velocity;
     bool isGrounded;
 
@@ -36,22 +37,59 @@ public class MovementSystem : MonoBehaviour
 
     private float t;
     private float d;
+    
     bool moving;
 
     private float dirX = 0f;
     private float dirZ = 0f;
 
+    private float dirXx = 0f;
+    private float dirZz = 0f;
 
-    [Header("Sliding")]
-    public float slideForce;
-    public float maxSlideTime;
-    public float maxSlopeAngle;
-    private float slideTimer;
+    private float bGrav;
 
-    private float startYscale;
-    private float halfYscale;
-    bool sliding;
-    RaycastHit slopeHit;
+    
+    //slide
+    public float slopeSpeed;
+    public float SlopeLimit = 45;
+    private Vector3 hitPointNormal;
+    private bool isSliding
+    {
+        get
+        {
+            if (isGrounded && Physics.Raycast(transform.position, Vector3.down, out RaycastHit slopeHit, 2f) && !Input.GetKey(KeyCode.LeftControl))
+            {
+                hitPointNormal = slopeHit.normal;
+               
+                return Vector3.Angle(hitPointNormal, Vector3.up) > controller.slopeLimit;
+                
+            }
+            else
+            {
+                return false;
+            }
+            
+        }
+    }
+
+    private bool isSlidingAndC
+    {
+        get
+        {
+            if (isGrounded && Physics.Raycast(transform.position, Vector3.down, out RaycastHit slopeHit, 2f) && Input.GetKey(KeyCode.LeftControl))
+            {
+                hitPointNormal = slopeHit.normal;
+
+                return Vector3.Angle(hitPointNormal, Vector3.up) > 0;
+
+            }
+            else
+            {
+                return false;
+            }
+
+        }
+    }
 
 
 
@@ -67,9 +105,10 @@ public class MovementSystem : MonoBehaviour
 
     void SetValues()
     {
+         
+        
+        bGrav = Gravity;
 
-        startYscale = transform.localScale.y;
-        halfYscale = transform.localScale.y / 2;
         Cursor.lockState = CursorLockMode.Locked;
         //adding a camera and setting it at the right position
         var cameraObj = new GameObject("players_camera");
@@ -89,7 +128,7 @@ public class MovementSystem : MonoBehaviour
         //adding the controller
         controller = gameObject.AddComponent<CharacterController>();
         //collision detection
-        GroundDistance = transform.localScale.y / 10;
+        GroundDistance = transform.localScale.z / 2;
         controller.stepOffset = 0;
         GroundCheckOffset = new Vector3(0, -transform.localScale.y, 0);
 
@@ -103,40 +142,82 @@ public class MovementSystem : MonoBehaviour
     void Update()
     {
 
-
+        
         GetInput();
         lookWithCam();
-
-    }
-
-    private bool OnSlope()
-    {
-        if (Physics.Raycast(transform.position, Vector3.down, out slopeHit, 5f))
+        
+        controller.slopeLimit = SlopeLimit;
+        if (isSliding)
         {
-            float angle = Vector3.Angle(Vector3.up, slopeHit.normal);
-            return angle < maxSlideTime && angle != 0;
+            
+            velocity += new Vector3(hitPointNormal.x, -hitPointNormal.y, hitPointNormal.z) * slopeSpeed;
+        } else
+        {
+            //complite later
+            if (velocity.x > 0)
+            {
+                velocity.x -= Time.deltaTime * slopeSpeed * 2; ;
+            } else if (velocity.x < 0)
+            {
+                velocity.x += Time.deltaTime * slopeSpeed * 2;
+            }
+
+            if (velocity.z > 0)
+            {
+                velocity.z -= Time.deltaTime * slopeSpeed * 2;
+            } else if (velocity.z < 0)
+            {
+                velocity.z += Time.deltaTime * slopeSpeed * 2;
+            }
+            
         }
 
-        return false;
+        if (isSlidingAndC)
+        {
+            velocity += new Vector3(hitPointNormal.x, -hitPointNormal.y, hitPointNormal.z) * slideSpeed; 
+        }
+        else
+        {
+            //complite later
+            if (velocity.x > 0)
+            {
+                velocity.x -= Time.deltaTime * slopeSpeed * 5; ;
+            }
+            else if (velocity.x < 0)
+            {
+                velocity.x += Time.deltaTime * slopeSpeed * 5;
+            }
+
+            if (velocity.z > 0)
+            {
+                velocity.z -= Time.deltaTime * slopeSpeed * 5;
+            }
+            else if (velocity.z < 0)
+            {
+                velocity.z += Time.deltaTime * slopeSpeed * 5;
+            }
+
+        }
+
+
+
+
     }
 
-    public Vector3 GetSlopeMoveDir(Vector3 direction)
-    {
-        return Vector3.ProjectOnPlane(direction, slopeHit.normal).normalized;
-    }
+   
 
     void GetInput()
     {
         float x = Input.GetAxis("Horizontal");
         float z = Input.GetAxis("Vertical");
-
+        //slopy
         if (Input.GetKey(KeyCode.W))
         {
-            dirZ = 0.1f;
+            dirZ = .1f;
         }
         else if (Input.GetKey(KeyCode.S))
         {
-            dirZ = -0.1f;
+            dirZ = -.1f;
         }
         else if (Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.D))
         {
@@ -145,26 +226,55 @@ public class MovementSystem : MonoBehaviour
 
         if (Input.GetKey(KeyCode.D))
         {
-            dirX = 0.1f;
+            dirX = .1f;
         }
         else if (Input.GetKey(KeyCode.A))
         {
-            dirX = -0.1f;
+            dirX = -.1f;
         }
         else if (Input.GetKey(KeyCode.W) || Input.GetKey(KeyCode.S))
         {
             dirX = 0;
         }
-        CallInputBasedMovement(dirX, dirZ, x, z);
+
+        
+        //normal
+        if (Input.GetKey(KeyCode.W))
+        {
+            dirZz = .1f;
+        }
+        else if (Input.GetKey(KeyCode.S))
+        {
+            dirZz = -.1f;
+        }
+        else if (!Input.GetKey(KeyCode.A) && !Input.GetKey(KeyCode.D))
+        {
+            dirZz = 0;
+        }
+
+        if (Input.GetKey(KeyCode.D))
+        {
+            dirXx = .1f;
+        }
+        else if (Input.GetKey(KeyCode.A))
+        {
+            dirXx = -.1f;
+        }
+        else if (!Input.GetKey(KeyCode.W) && !Input.GetKey(KeyCode.S))
+        {
+            dirXx = 0;
+        }
+
+
+        CallInputBasedMovement(dirX, dirZ, dirXx, dirZz);
     }
 
     void CallInputBasedMovement(float xSlippery, float zSlippery, float x, float z)
     {
         GroundMovement(xSlippery, zSlippery);
         HandleSpeed(x, z, xSlippery, zSlippery);
-        SlideInputMana(x, z);
-        if (sliding)
-            SlidingMovement(x, z);
+       
+        
     }
 
     void GroundMovement(float x, float z)
@@ -242,56 +352,9 @@ public class MovementSystem : MonoBehaviour
         
     }
 
-    void SlideInputMana(float x, float z)
-    {
-        if (Input.GetKey(KeyCode.LeftShift) && (x != 0 || z != 0))
-            StartSlide();
-
-        if (Input.GetKeyUp(KeyCode.LeftShift) && sliding)
-            StopSlide();
-
-        
-    }
+     
+   
     
-    private void StartSlide()
-    {
-        sliding = true;
-
-        transform.localScale = new Vector3(transform.localScale.x, halfYscale, transform.localScale.z);
-        controller.Move(Vector3.down * 20);
-
-        slideTimer = maxSlideTime;
-    }
-
-    private void SlidingMovement(float x, float z)
-    {
-        Vector3 inputDir = transform.forward * z + transform.right * x;
-
-        if (!OnSlope())
-        {
-            controller.SimpleMove(inputDir.normalized * slideForce);
-            slideTimer -= Time.deltaTime;
-
-        }
-        else
-        {
-            print("onTheSlope");
-            controller.SimpleMove(GetSlopeMoveDir(inputDir) * slideForce);
-
-        }
-
-
-        if (slideTimer <= 0)
-        {
-            StopSlide();
-        }
-    }
-
-    private void StopSlide()
-    {
-        sliding = false;
-        transform.localScale = new Vector3(transform.localScale.x, startYscale, transform.localScale.z);
-    }
 
 
     //Gizmos Ui
@@ -367,7 +430,7 @@ public class MovementSystem : MonoBehaviour
             }
             GUI.color = Color.cyan;
             GUI.TextArea(new Rect(15, 500, 30, 30), speed.ToString());
-            print(speed);
+            
         }
 
     }
