@@ -16,7 +16,7 @@ public class MovementSystem : MonoBehaviour
 
     private Vector3 GroundCheckOffset;
     private float GroundDistance = 0;
-    [HideInInspector] public LayerMask GroundLayerMask;
+   public LayerMask GroundLayerMask;
 
    [HideInInspector] public float JumpForce = 3f;
 
@@ -27,7 +27,7 @@ public class MovementSystem : MonoBehaviour
     [HideInInspector] public float Gravity = -9.81f;
 
     [Header("camera")]
-    public float camFallBuffer = 4;
+    
     
     public float mouseSpeed = 100f;
     private Vector3 startPos;
@@ -53,6 +53,19 @@ public class MovementSystem : MonoBehaviour
     public float slopeSpeed;
     public float SlopeLimit = 45;
     private Vector3 hitPointNormal;
+
+    [Header("valting")]
+    
+    [SerializeField] float ValtRange = 1;
+    [SerializeField] Vector3 Upoffset;
+    [SerializeField] Vector3 Downoffset;
+    bool camValtReady;
+    bool objValtReady;
+    bool canValt = true;
+    
+
+    
+
     private bool isSliding
     {
         get
@@ -92,7 +105,8 @@ public class MovementSystem : MonoBehaviour
     }
 
 
-
+    float thisScale;
+    float halfthisscale;
 
     Vector3 movementVector;
     [Header("debugging")]
@@ -105,8 +119,7 @@ public class MovementSystem : MonoBehaviour
 
     void SetValues()
     {
-         
-        
+
         bGrav = Gravity;
 
         Cursor.lockState = CursorLockMode.Locked;
@@ -136,6 +149,8 @@ public class MovementSystem : MonoBehaviour
         {
             TimeToDecelerate = 0.00000000000000000000000000000000000001f;
         }
+        thisScale = transform.localScale.y;
+        halfthisscale = thisScale / 2;
     }
 
     // Update is called once per frame
@@ -145,66 +160,14 @@ public class MovementSystem : MonoBehaviour
         
         GetInput();
         lookWithCam();
-        
-        controller.slopeLimit = SlopeLimit;
-        if (isSliding)
-        {
-            
-            velocity += new Vector3(hitPointNormal.x, -hitPointNormal.y, hitPointNormal.z) * slopeSpeed;
-        } else
-        {
-            //complite later
-            if (velocity.x > 0)
-            {
-                velocity.x -= Time.deltaTime * slopeSpeed * 2; ;
-            } else if (velocity.x < 0)
-            {
-                velocity.x += Time.deltaTime * slopeSpeed * 2;
-            }
 
-            if (velocity.z > 0)
-            {
-                velocity.z -= Time.deltaTime * slopeSpeed * 2;
-            } else if (velocity.z < 0)
-            {
-                velocity.z += Time.deltaTime * slopeSpeed * 2;
-            }
-            
-        }
-
-        if (isSlidingAndC)
-        {
-            velocity += new Vector3(hitPointNormal.x, -hitPointNormal.y, hitPointNormal.z) * slideSpeed; 
-        }
-        else
-        {
-            //complite later
-            if (velocity.x > 0)
-            {
-                velocity.x -= Time.deltaTime * slopeSpeed * 5; ;
-            }
-            else if (velocity.x < 0)
-            {
-                velocity.x += Time.deltaTime * slopeSpeed * 5;
-            }
-
-            if (velocity.z > 0)
-            {
-                velocity.z -= Time.deltaTime * slopeSpeed * 5;
-            }
-            else if (velocity.z < 0)
-            {
-                velocity.z += Time.deltaTime * slopeSpeed * 5;
-            }
-
-        }
-
-
+        Slideing();
+        vaulting();
+        HandleGroundChecking();
 
 
     }
 
-   
 
     void GetInput()
     {
@@ -279,7 +242,6 @@ public class MovementSystem : MonoBehaviour
 
     void GroundMovement(float x, float z)
     {
-        isGrounded = Physics.CheckSphere(transform.position + GroundCheckOffset, GroundDistance, GroundLayerMask);
         if (isGrounded && velocity.y < 0)
         {
             velocity.y = -2f;
@@ -292,6 +254,12 @@ public class MovementSystem : MonoBehaviour
         }
         velocity.y += Gravity * Time.deltaTime;
         controller.Move(velocity * Time.deltaTime);
+    }
+
+    void HandleGroundChecking()
+    {
+        isGrounded = Physics.CheckSphere(transform.position + GroundCheckOffset, GroundDistance, GroundLayerMask);
+
     }
 
     void HandleSpeed(float x, float z, float xSlip, float zSlip)
@@ -357,6 +325,127 @@ public class MovementSystem : MonoBehaviour
     
 
 
+    void Slideing()
+    {
+        controller.slopeLimit = SlopeLimit;
+        if (isSliding)
+        {
+
+            velocity += new Vector3(hitPointNormal.x, -hitPointNormal.y, hitPointNormal.z) * slopeSpeed;
+        }
+        else
+        {
+            //complite later
+            if (velocity.x > 0)
+            {
+                velocity.x -= Time.deltaTime * slopeSpeed * 2; ;
+            }
+            else if (velocity.x < 0)
+            {
+                velocity.x += Time.deltaTime * slopeSpeed * 2;
+            }
+
+            if (velocity.z > 0)
+            {
+                velocity.z -= Time.deltaTime * slopeSpeed * 2;
+            }
+            else if (velocity.z < 0)
+            {
+                velocity.z += Time.deltaTime * slopeSpeed * 2;
+            }
+
+        }
+
+        if (Input.GetKey(KeyCode.LeftControl))
+        {
+
+            transform.localScale = new Vector3(transform.localScale.x, halfthisscale, transform.localScale.z);
+            speed = speed / 4;
+        }
+        else
+        {
+
+            transform.localScale = new Vector3(transform.localScale.x, thisScale, transform.localScale.z);
+        }
+
+        if (isSlidingAndC)
+        {
+            velocity += new Vector3(hitPointNormal.x, -hitPointNormal.y, hitPointNormal.z) * slideSpeed;
+        }
+        else
+        {
+            //complite later
+            if (velocity.x > 0)
+            {
+                velocity.x -= Time.deltaTime * slopeSpeed * 5; ;
+            }
+            else if (velocity.x < 0)
+            {
+                velocity.x += Time.deltaTime * slopeSpeed * 5;
+            }
+
+            if (velocity.z > 0)
+            {
+                velocity.z -= Time.deltaTime * slopeSpeed * 5;
+            }
+            else if (velocity.z < 0)
+            {
+                velocity.z += Time.deltaTime * slopeSpeed * 5;
+            }
+
+        }
+    }
+
+   
+    void vaulting()
+    {
+        if (canValt && moving)
+        {
+            RaycastHit hit;
+            RaycastHit camhit;
+            
+            if (Physics.Raycast(transform.position + Downoffset, transform.forward, out hit, ValtRange, GroundLayerMask))
+            {
+                objValtReady = true;
+                
+                
+            }
+            else
+            {
+                objValtReady = false;
+            }
+            
+
+            if (Physics.Raycast(transform.position + Upoffset, transform.forward, out camhit, ValtRange))
+            {
+                //if it hits the ready will be false
+                camValtReady = false;
+                
+
+            }
+            else
+            {
+                camValtReady = true;
+
+                if (camValtReady && objValtReady && !Input.GetKey(KeyCode.S))
+                {
+                    //jumps = bJumps;
+                    controller.Move(transform.forward + new Vector3(0, 0, ValtRange - 1));
+                    controller.Move(transform.up * transform.localScale.y);
+                    camValtReady = false;
+                    objValtReady = false;
+                    
+                    
+
+
+
+                }
+            }
+
+           
+        
+        }
+    }
     //Gizmos Ui
     private void OnDrawGizmos()
     {
@@ -370,6 +459,11 @@ public class MovementSystem : MonoBehaviour
             Gizmos.color = Color.green;
             Gizmos.DrawWireSphere(transform.position + GroundCheckOffset, GroundDistance);
         }
+        Gizmos.color = Color.yellow;
+        Gizmos.DrawRay(transform.position + Downoffset, transform.forward + new Vector3(0, 0, ValtRange - 1));
+
+        Gizmos.color = Color.green;
+        Gizmos.DrawRay(transform.position + Upoffset, transform.forward + new Vector3(0, 0, ValtRange - 1));
     }
 
     private void OnGUI()

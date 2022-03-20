@@ -872,8 +872,8 @@ public class playerMove : MonoBehaviour
     }
     void valting()
     {
-        float x = Input.GetAxis("Horizontal");
-        float z = Input.GetAxis("Vertical");
+       // float x = Input.GetAxis("Horizontal");
+      //  float z = Input.GetAxis("Vertical");
         if (canValt && moving)
         {
             RaycastHit hit;
