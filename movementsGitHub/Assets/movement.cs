@@ -2,11 +2,10 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-
-public class MovementSystem : MonoBehaviour
+public class movement : MonoBehaviour
 {
     private CharacterController controller;
-    
+
     public AnimationCurve AccelerationMovementCurve;
     public float TimeToDecelerate;
 
@@ -16,9 +15,9 @@ public class MovementSystem : MonoBehaviour
 
     private Vector3 GroundCheckOffset;
     private float GroundDistance = 0;
-   public LayerMask GroundLayerMask;
+    public LayerMask GroundLayerMask;
 
-   public float JumpForce = 3f;
+    public float JumpForce = 3f;
 
     public float slideSpeed;
     Vector3 velocity;
@@ -27,8 +26,8 @@ public class MovementSystem : MonoBehaviour
     public float Gravity = -9.81f;
 
     [Header("camera")]
-    
-    
+
+
     public float mouseSpeed = 100f;
     private Vector3 startPos;
     Transform cam;
@@ -37,7 +36,7 @@ public class MovementSystem : MonoBehaviour
 
     private float t;
     private float d;
-    
+
     bool moving;
 
     private float dirX = 0f;
@@ -48,23 +47,23 @@ public class MovementSystem : MonoBehaviour
 
     private float bGrav;
 
-    
+
     //slide
     public float slopeSpeed;
     public float SlopeLimit = 45;
     private Vector3 hitPointNormal;
 
     [Header("valting")]
-    
+
     [SerializeField] float ValtRange = 1;
     [SerializeField] Vector3 Upoffset;
     [SerializeField] Vector3 Downoffset;
     bool camValtReady;
     bool objValtReady;
     bool canValt = true;
-    
 
-    
+
+
 
     private bool isSliding
     {
@@ -73,15 +72,15 @@ public class MovementSystem : MonoBehaviour
             if (isGrounded && Physics.Raycast(transform.position, Vector3.down, out RaycastHit slopeHit, 2f) && !Input.GetKey(KeyCode.LeftControl))
             {
                 hitPointNormal = slopeHit.normal;
-               
+
                 return Vector3.Angle(hitPointNormal, Vector3.up) > controller.slopeLimit;
-                
+
             }
             else
             {
                 return false;
             }
-            
+
         }
     }
 
@@ -128,10 +127,10 @@ public class MovementSystem : MonoBehaviour
 
 
         cameraObj.AddComponent<Camera>();
-       
+
         cam = cameraObj.transform;
         cam.position = new Vector3(transform.position.x, transform.localScale.y, transform.position.z);
-        
+
         Keyframe keyframe = new Keyframe(0, 0);
         AccelerationMovementCurve.MoveKey(0, keyframe);
 
@@ -157,7 +156,7 @@ public class MovementSystem : MonoBehaviour
     void Update()
     {
 
-        
+
         GetInput();
         lookWithCam();
 
@@ -200,7 +199,7 @@ public class MovementSystem : MonoBehaviour
             dirX = 0;
         }
 
-        
+
         //normal
         if (Input.GetKey(KeyCode.W))
         {
@@ -236,8 +235,8 @@ public class MovementSystem : MonoBehaviour
     {
         GroundMovement(xSlippery, zSlippery);
         HandleSpeed(x, z, xSlippery, zSlippery);
-       
-        
+
+
     }
 
     void GroundMovement(float x, float z)
@@ -282,8 +281,8 @@ public class MovementSystem : MonoBehaviour
             speed = DecelerationCurve.Evaluate(d);
             d = d + Time.deltaTime;
             t = 0;
-           // Vector3 movementSlipperyVector = transform.right * xSlip + transform.forward * zSlip;
-           // controller.Move(movementSlipperyVector * speed);
+            // Vector3 movementSlipperyVector = transform.right * xSlip + transform.forward * zSlip;
+            // controller.Move(movementSlipperyVector * speed);
             moving = false;
 
 
@@ -299,7 +298,7 @@ public class MovementSystem : MonoBehaviour
 
     void lookWithCam()
     {
-        
+
 
         float mouseX = Input.GetAxis("Mouse X") * mouseSpeed * Time.deltaTime;
         float mouseY = Input.GetAxis("Mouse Y") * mouseSpeed * Time.deltaTime;
@@ -313,16 +312,16 @@ public class MovementSystem : MonoBehaviour
 
         cam.transform.SetParent(this.transform);
 
-        
 
-        
 
-        
+
+
+
     }
 
-     
-   
-    
+
+
+
 
 
     void Slideing()
@@ -396,31 +395,31 @@ public class MovementSystem : MonoBehaviour
         }
     }
 
-   
+
     void vaulting()
     {
         if (canValt && moving)
         {
             RaycastHit hit;
             RaycastHit camhit;
-            
+
             if (Physics.Raycast(transform.position + Downoffset, transform.forward, out hit, ValtRange, GroundLayerMask))
             {
                 objValtReady = true;
-                
-                
+
+
             }
             else
             {
                 objValtReady = false;
             }
-            
+
 
             if (Physics.Raycast(transform.position + Upoffset, transform.forward, out camhit, ValtRange))
             {
                 //if it hits the ready will be false
                 camValtReady = false;
-                
+
 
             }
             else
@@ -434,16 +433,16 @@ public class MovementSystem : MonoBehaviour
                     controller.Move(transform.up * transform.localScale.y);
                     camValtReady = false;
                     objValtReady = false;
-                    
-                    
+
+
 
 
 
                 }
             }
 
-           
-        
+
+
         }
     }
     //Gizmos Ui
@@ -524,7 +523,7 @@ public class MovementSystem : MonoBehaviour
             }
             GUI.color = Color.cyan;
             GUI.TextArea(new Rect(15, 500, 30, 30), speed.ToString());
-            
+
         }
 
     }
